@@ -3,7 +3,18 @@
 #include <DHT.h>
 #include <Adafruit_Sensor.h>
 
-#define DHTPIN 15 
+void InitOutput();
+void initSerial();
+void initWiFi();
+void initMQTT();
+void reconectWiFi();
+void reconnectMQTT();
+void VerificaConexoesWiFIEMQTT();
+void mqtt_callback(char* topic, byte* payload, unsigned int length);
+void publishSensorData();
+
+
+#define DHTPIN 4  
 #define DHTTYPE DHT11
 const int ldrPin = 34;
 
@@ -11,7 +22,7 @@ DHT dht(DHTPIN, DHTTYPE);
 
 const char* default_SSID = "FIAP-IOT";
 const char* default_PASSWORD = "F!@p25.IOT";
-const char* default_BROKER_MQTT = "Ip do servidor";
+const char* default_BROKER_MQTT = "54.221.163.3";
 const int default_BROKER_PORT = 1883;
 const int default_D4 = 2;
 const char* default_TOPICO_SUBSCRIBE = "/TEF/device007/cmd";
@@ -72,6 +83,7 @@ void initWiFi() {
 void initMQTT() {
     MQTT.setServer(BROKER_MQTT, BROKER_PORT);
     MQTT.setCallback(mqtt_callback);
+}
 
 void InitOutput() {
     pinMode(D4, OUTPUT);
@@ -122,7 +134,6 @@ void VerificaConexoesWiFIEMQTT() {
     reconectWiFi();
 }
 
-
 void mqtt_callback(char* topic, byte* payload, unsigned int length) {
     String msg;
     for (int i = 0; i < length; i++) {
@@ -130,36 +141,11 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
         msg += c;
     }
     Serial.print("- Mensagem recebida: ");
-    Serial.println(msg);
-
-    String onTopic = String(topicPrefix) + "@on|";
-    String offTopic = String(topicPrefix) + "@off|";
-
-    String publishPayload = "";
-
-    if (msg.equals(onTopic)) {
-        digitalWrite(D4, HIGH);
-        EstadoSaida = '1';
-        publishPayload = "s|on";
-        Serial.println("- LED Ligado");
-    }
-
-    if (msg.equals(offTopic)) {
-        digitalWrite(D4, LOW);
-        EstadoSaida = '0';
-        publishPayload = "s|off";
-        Serial.println("- LED Desligado");
-    }
-
-    if (publishPayload.length() > 0) {
-        MQTT.publish(TOPICO_PUBLISH, publishPayload.c_str());
-        Serial.println("- Estado do LED enviado ao broker!");
-    }
 }
 
 void publishSensorData() {
     int sensorValue = analogRead(ldrPin);
-    int luminosity = map(sensorValue, 0, 4095, 0, 100); 
+    int luminosity = map(sensorValue, 0, 4095, 0, 100);
 
     float h = dht.readHumidity();
     float t = dht.readTemperature();
@@ -168,6 +154,17 @@ void publishSensorData() {
         Serial.println("Falha ao ler o sensor DHT11!");
         return;
     }
+
+    Serial.print("Luminosidade (LDR): ");
+    Serial.println(luminosity);
+
+    Serial.print("Temperatura: ");
+    Serial.print(t); 
+    Serial.print(" °C  ");
+
+    Serial.print("Umidade: ");
+    Serial.print(h); 
+    Serial.println(" %");
 
     String payload = "l|" + String(luminosity) + "|t|" + String(t, 1) + "|h|" + String(h, 1);
 
