@@ -51,7 +51,7 @@ O programa foi desenvolvido em **C++ para a plataforma Arduino (ESP32)** e é di
 
 | Componente | Pino ESP32 | Descrição |
 |-------------|------------|------------|
-| DHT11       | 15         | Leitura de temperatura e umidade |
+| DHT11       | 4          | Leitura de temperatura e umidade |
 | LDR         | 34         | Leitura da luminosidade |
 | LED (saída) | 2 (D4)     | Indicador de estado / Atuador |
 
@@ -66,9 +66,6 @@ O programa foi desenvolvido em **C++ para a plataforma Arduino (ESP32)** e é di
 
 **Formato das mensagens:**
 - Publicação de sensores → `l|[luminosidade]|t|[temperatura]|h|[umidade]`
-- Controle do LED →  
-  - Envio: `s|on` / `s|off`  
-  - Recebido: `device007@on|` / `device007@off|`
 
 ---
 
